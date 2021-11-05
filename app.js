@@ -9,6 +9,7 @@ mongoose.connect('mongodb+srv://karanh:' + password + '@test-db.ymyhm.mongodb.ne
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var {User, Product, Review} = require('./database/database')
 
 var app = express();
 
