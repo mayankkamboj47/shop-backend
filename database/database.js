@@ -1,15 +1,12 @@
 var mongoose = require('mongoose');
-var password = 'binkbonk123'
-mongoose.connect('mongodb+srv://karanh:' + password + '@test-db.ymyhm.mongodb.net/myFirstDatabase?retryWrites=true&w=majority');
-
+var password = 'thisisthepassword'
+mongoose.connect('mongodb+srv://root:'+password+'@cluster0.fhdc1.mongodb.net/myFirstDatabase?retryWrites=true&w=majority');
+const passportLocalMongoose = require('passport-local-mongoose');
 const { Schema } = mongoose;
 
 const userSchema = new Schema({
-    _id: {
-        type: String,
-        alias: "user_id"
-    },
-    pass_hash: String,
+    username : String,
+    password: String,
     delivery_addr: String,
     ordered_items: [{
         product_id: String,
@@ -25,6 +22,7 @@ const userSchema = new Schema({
     google_id: String,
     facebook_id: String
 });
+userSchema.plugin(passportLocalMongoose);
 
 const productSchema = new Schema({
     _id: {
@@ -53,7 +51,7 @@ const reviewSchema = new Schema({
         alias: "review_id"
     },
     title: String,
-    user_id: String,
+    username: String,
     product_id: String,
     is_verified: Boolean,
     product_rating: Number,

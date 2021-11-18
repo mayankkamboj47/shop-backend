@@ -1,16 +1,18 @@
 var createError = require('http-errors');
 var express = require('express');
+var session = require('express-session');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var mongoose = require('mongoose');
-var password = 'binkbonk123'
-mongoose.connect('mongodb+srv://karanh:' + password + '@test-db.ymyhm.mongodb.net/myFirstDatabase?retryWrites=true&w=majority');
+var password = 'thisisthepassword'
+mongoose.connect('mongodb+srv://root:'+password+'@cluster0.fhdc1.mongodb.net/myFirstDatabase?retryWrites=true&w=majority');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var {User, Product, Review} = require('./database/database')
-
+var {User} = require('./database/database');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
 var app = express();
 
 // view engine setup
@@ -22,6 +24,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({
+  secret : 'shush',
+  resave : false,
+  saveUninitialized : false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
