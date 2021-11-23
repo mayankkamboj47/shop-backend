@@ -29,18 +29,15 @@ const productSchema = new Schema({
         type: String,
         alias: "product_id"
     },
-    product_name: String,
-    product_category: String,
-    currency: String,
-    product_cost: Number,
-    product_rating: Number, // 1-5
-    product_desc: String,
-    product_specs: [{key: String}], // Need to think about it and fix this
-    product_images: [{
+    product_name: String,   //
+    product_desc: String,   //
+    product_category: String,   //
+    product_images: [{  //
         url: String,
         alt: String
     }], //
-    product_branch: String,
+    product_cost: Number,   //
+    product_rating: Number, // 1-5
     product_num_of_reviews: Number,
     product_num_of_wishlist: Number
 });
