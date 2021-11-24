@@ -1,14 +1,24 @@
+//===============================================
+// Boilerplate (Express + Routers)
+
 var express = require('express');
-const passport = require('passport');
 var router = express.Router();
-var {User} = require('../database/database.js');
-/* GET home page. */
+
+//===============================================
+// Passport for Authentication
+const passport = require('passport');
+
+//===============================================
+// User Model from Database
+var {User, Product} = require('../database/database.js');
+
+//===============================================
+// 
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
-router.post('/register',function(req,res){
-  console.log('Register request : ');
-  console.log(req.body.username,req.body.password);
+
+router.post('/user',function(req,res){
   User.register(new User({
     username : req.body.username,
     delivery_addr : '43A, Chandni Chowk, New Delhi',
@@ -35,8 +45,15 @@ router.post('/register',function(req,res){
 router.post('/login',passport.authenticate('local'), function(req,res){
   res.redirect('/');
 });
-router.get('/secret',function(req,res){
+
+router.get('/products',async function(req,res){
+  let products = await Product.find({});
+  res.json(products);
+});
+// sample route to demonstrate authentication. Remove this later !
+router.get('/secret',function(req,res){ 
   if(!req.user) res.json('Please login first');
   else res.json(req.user);
 });
+
 module.exports = router;

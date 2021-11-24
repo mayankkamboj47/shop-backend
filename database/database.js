@@ -31,7 +31,7 @@ const productSchema = new Schema({
     },
     product_name: String,   //
     product_desc: String,   //
-    product_category: String,   //
+    product_category: [String],   //
     product_images: [{  //
         url: String,
         alt: String

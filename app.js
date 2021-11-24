@@ -10,7 +10,7 @@ mongoose.connect('mongodb+srv://root:'+password+'@cluster0.fhdc1.mongodb.net/myF
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var {User} = require('./database/database');
+var {User, Product} = require('./database/database');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 var app = express();

@@ -48,9 +48,8 @@
 //45. https://res.cloudinary.com/dl6m7txan/image/upload/v1602429780/45_vk1xoj.jpg
 //46. https://res.cloudinary.com/dl6m7txan/image/upload/v1603043492/mondal_shirt_sfw_v44nfm.jpg
 
-
-export default {
-    products: [{
+import {Product} from './database.js';
+let products =  [{
             _id: "1",
             product_name: "BLACK HOODED JACKET",
             product_desc: "Sweatshirt jacket with a lined drawstring hood. Zip at front, side pockets, and ribbing at cuffs and hem. Soft, brushed inside.",
@@ -501,5 +500,7 @@ export default {
             product_num_of_reviews: 0,
             product_num_of_wishlist: 0,
         },
-    ]
+    ];
+for(let product of products){
+    (new Product({...product}).save().then((p)=>console.log(p,'saved')).catch((e)=>console.log("error",e)));
 }
