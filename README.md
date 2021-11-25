@@ -18,4 +18,4 @@ Taken the product data from https://github.com/actuallysoham/fshn/blob/master/ba
 
 # API Building (Reviews)
 1. GET /reviews/:product
-2. POST /reviews/product
+2. POST /reviews/:product
