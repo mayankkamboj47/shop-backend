@@ -43,10 +43,6 @@ const productSchema = new Schema({
 });
 
 const reviewSchema = new Schema({
-    _id: {
-        type: String,
-        alias: "review_id"
-    },
     title: String,
     username: String,
     product_id: String,
