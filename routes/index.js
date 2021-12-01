@@ -31,8 +31,9 @@ router.get('/products',async function(req,res){
 //===============================================
 // Single Product
 router.get('/products/:name',async function(req,res){
+  console.log(req.params.name);
   res.json(
-    await Product.findOne({product_name : req.params.name})
+    await Product.findOne({product_name : req.params.name.toUpperCase()})
   );
 });
 
@@ -49,7 +50,7 @@ router.get('/user',function(req,res) {
 
 router.get('/user/ordered_items',function(req,res){
   if(!req.user) return res.json('Please login');
-  res.json(req.user.ordered_items)
+  res.json(req.user.ordered_items);
 });
 
 router.get('/user/wishlisted_items',function(req,res){
@@ -111,9 +112,9 @@ router.get('/reviews/:product_id',async function(req,res){
   )
 });
 
-router.post('/reviews/:product_id',async function(req,res){ // Fix this
+router.post('/reviews/:product_id',async function(req,res){
   if(!req.user) return res.json('Please login');
-  console.log(req.params.user)
+  console.log(req.params.user);
   let username = req.user.username;
   let isVerified = req.user.ordered_items.some(item=>item.product_id === req.params.product_id);
   let review = new Review({...req.body,username, isVerified, product_id : req.params.product_id});
