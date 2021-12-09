@@ -80,23 +80,26 @@ router.get('/user',function(req,res) {
   res.json(req.user);
 });
 
-router.get('/user/ordered_items',function(req,res){
-  if(!req.user) return res.json('Please login');
-
-  let ids = req.user.ordered_items.map(object => object.product_id)
-
+router.get('/user/ordered_items',async function(req,res){
+  if(!req.user) return res.status(403).json(null);
+  let ids = req.user.cart_items.map(object => object.product_id)
+  let data = (await Promise.all(ids.map(id=>Product.findOne({_id : id}))));
+  data = data.map((obj,i)=>obj===null ? obj : Object.assign({date : req.user.cart_items[i].date},obj._doc));
+  res.json(data);
+});
+router.get('/user/wishlisted_items',async function(req,res){
+  if(!req.user) return res.status(403).json(null);
   res.json(
-    await Product.find({_id : {$some : ids}});
+    await Product.find({_id : {$in : req.user.wishlisted_items.map(object=>object.product_id)}})
+  ) // fetch actual products from Products based on each _id of the product
 });
 
-router.get('/user/wishlisted_items',function(req,res){
+router.get('/user/cart_items',async function(req,res){
   if(!req.user) return res.status(403).json(null);
-  res.json(req.user.wishlisted_items) // fetch actual products from Products based on each _id of the product
-});
-
-router.get('/user/cart_items',function(req,res){
-  if(!req.user) return res.status(403).json(null);
-  res.json(req.user.cart_items); // fetch actual products from Products based on each _id of the product
+  let ids = req.user.cart_items.map(object => object.product_id)
+  let data = (await Promise.all(ids.map(id=>Product.findOne({_id : id}))));
+  data = data.map((obj,i)=>obj===null ? obj : Object.assign({quantity : req.user.cart_items[i].quantity},obj._doc));
+  res.json(data);
 });
 router.get('/user/cart_items/length',function(req,res){
   if(!req.user) return res.status(403).json(null);
