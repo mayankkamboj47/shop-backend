@@ -80,9 +80,13 @@ router.get('/user',function(req,res) {
   res.json(req.user);
 });
 
-router.get('/user/ordered_items',function(req,res){ 
-  if(!req.user) return res.status(403).json(null);
-  res.json(req.user.ordered_items); // fetch actual products from Products based on each _id of the product
+router.get('/user/ordered_items',function(req,res){
+  if(!req.user) return res.json('Please login');
+
+  let ids = req.user.ordered_items.map(object => object.product_id)
+
+  res.json(
+    await Product.find({_id : {$some : ids}});
 });
 
 router.get('/user/wishlisted_items',function(req,res){
