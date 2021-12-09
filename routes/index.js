@@ -50,7 +50,11 @@ router.get('/user',function(req,res) {
 
 router.get('/user/ordered_items',function(req,res){
   if(!req.user) return res.json('Please login');
-  res.json(req.user.ordered_items);
+
+  let ids = req.user.ordered_items.map(object => object.product_id)
+
+  res.json(
+    await Product.find({_id : {$some : ids}});
 });
 
 router.get('/user/wishlisted_items',function(req,res){
