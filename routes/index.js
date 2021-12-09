@@ -30,6 +30,36 @@ router.get('/products',async function(req,res){
 
 //===============================================
 // Single Product
+router.get('/products/toCart', async function(req,res){
+  if(!req.user) return res.status(403).json(null);
+  let products = req.user.cart_items.slice();
+  products.push({
+    product_id : req.query.product_id,
+    quantity : req.query.quantity});
+  console.log('Products is now',products);
+  User.findOneAndUpdate({_id:req.user._id},{cart_items : products},{},function(err,data){
+    if(err) return res.status(500).json(err);
+    else return res.status(200);
+  });
+});
+router.get('/products/toWishlist', async function(req,res){
+  if(!req.user) return res.status(403).json(null);
+  let products = req.user.wishlisted_items.slice();
+  products.push({
+    product_id : req.query.product_id,
+  });
+  User.findOneAndUpdate({_id:req.user._id},{wishlisted_items : products},{},function(err,data){
+    if(err) return res.status(500).json(err);
+    else return res.status(200);
+  });
+  Product.findOneAndUpdate({_id:req.query.product_id},{$inc : {product_num_of_wishlist : 1}},{},(err, data)=>{
+    if(err){
+      throw new Error(err);
+    }
+  })
+});
+
+
 router.get('/products/:name',async function(req,res){
   console.log(req.params.name);
   res.json(
@@ -43,24 +73,30 @@ router.get('/products/category/:name',async function(req,res){
   );
 });
 
+
+
 router.get('/user',function(req,res) {
-  if(!req.user) return res.json('Please login');
+  if(!req.user) return res.status(403).json(null);
   res.json(req.user);
 });
 
-router.get('/user/ordered_items',function(req,res){
-  if(!req.user) return res.json('Please login');
-  res.json(req.user.ordered_items);
+router.get('/user/ordered_items',function(req,res){ 
+  if(!req.user) return res.status(403).json(null);
+  res.json(req.user.ordered_items); // fetch actual products from Products based on each _id of the product
 });
 
 router.get('/user/wishlisted_items',function(req,res){
-  if(!req.user) return res.json('Please login');
-  res.json(req.user.wishlisted_items)
+  if(!req.user) return res.status(403).json(null);
+  res.json(req.user.wishlisted_items) // fetch actual products from Products based on each _id of the product
 });
 
 router.get('/user/cart_items',function(req,res){
-  if(!req.user) return res.json('Please login');
-  res.json(req.user.cart_items)
+  if(!req.user) return res.status(403).json(null);
+  res.json(req.user.cart_items); // fetch actual products from Products based on each _id of the product
+});
+router.get('/user/cart_items/length',function(req,res){
+  if(!req.user) return res.status(403).json(null);
+  res.json(req.user.cart_items.length);
 });
 
 router.post('/user',function(req,res){
@@ -88,9 +124,11 @@ router.post('/user',function(req,res){
   });
 });
 
-router.put('/user',function(req,res){
-  if(!req.user) return res.json('Please login');
-  User.findOneAndUpdate({_id : req.user._id}, req.body, {}, function (err, data) {
+router.get('/user/modify',function(req,res){
+  // req.user is not showing up for any method apart from /get. https://github.com/jaredhanson/passport/issues/846 
+  console.log(req.query.username);
+  if(!req.user) return res.status(403).json(null);
+  User.findOneAndUpdate({_id : req.user._id}, req.query, {}, function (err, data) {
     if (err) {
         return res.status(500).send(err);
     }
@@ -101,25 +139,34 @@ router.put('/user',function(req,res){
   });
 });
 
+
 router.get('/reviews', function (req,res){
   if(!req.user) return res.json('Please login');
   res.render('review', {title : "Post a Review"})
+});
+
+router.get('/reviews/add/:product_id',async function(req,res){
+  if(!req.user) return res.status(403).json(null);
+  console.log(req.params.user);
+  let username = req.user.username;
+  let isVerified = req.user.ordered_items.some(item=>item.product_id === req.params.product_id);
+  let reviewData = {...req.query,username, isVerified, product_id : req.params.product_id}
+  let review = new Review(reviewData);
+  await review.save();
+  res.status(200).json(reviewData);
+  let reviews = (await Review.find({product_id : req.params.product_id}));
+  let newRating = reviews.reduce((sum,review)=>sum+review.product_rating,0)/reviews.length;
+  Product.findOneAndUpdate({_id:req.params.product_id},{product_rating:newRating, $inc : {product_num_of_reviews : 1} },{},(err,res)=>{
+    if(err){
+      throw new Error(err);
+    }
+  });
 });
 
 router.get('/reviews/:product_id',async function(req,res){
   res.json(
     await Review.find({product_id : req.params.product_id})
   )
-});
-
-router.post('/reviews/:product_id',async function(req,res){
-  if(!req.user) return res.json('Please login');
-  console.log(req.params.user);
-  let username = req.user.username;
-  let isVerified = req.user.ordered_items.some(item=>item.product_id === req.params.product_id);
-  let review = new Review({...req.body,username, isVerified, product_id : req.params.product_id});
-  await review.save();
-  res.status(200).json(null);
 });
 
 router.post('/login',passport.authenticate('local'), function(req,res){
