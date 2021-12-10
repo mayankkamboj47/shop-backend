@@ -59,6 +59,42 @@ router.get('/products/toWishlist', async function(req,res){
   })
 });
 
+router.get('/cartToOrderedItems',async function(req,res){
+  if(!req.user) res.status(403).json(null);
+  let user = await User.findOne({username : req.user.username});
+  let today = new Date();
+  user.ordered_items = user.ordered_items.concat(user.cart_items.map(item=>({product_id:item.product_id, date : today})));
+  user.cart_items = [];
+  await user.save();
+  res.status(200).json(null);
+});
+
+router.get('/cartToWishlist/:product_id',async function(req,res){
+  if(!req.user) return res.status(403).json(null);
+
+  await User.findOneAndUpdate({username:req.user.username},{wishlisted_items : req.user.wishlisted_items.concat([{product_id : req.params.product_id}]),
+  cart_items : req.user.cart_items.filter(product=>product.product_id!==req.params.product_id)});
+  res.status(200).json(null);
+});
+
+router.get('/wishlistToCart/:product_id',async function(req,res){
+  if(!req.user) return res.status(403).json(null);
+
+  await User.findOneAndUpdate({username:req.user.username},{cart_items : req.user.cart_items.concat([{product_id : req.params.product_id, quantity : 1}]),
+  wishlisted_items : req.user.wishlisted_items.filter(product=>product.product_id!==req.params.product_id)});
+  res.status(200).json(null);
+});
+
+router.get('/removeFromWishlist/:product_id',async function(req,res){
+  if(!req.user) return res.status(403).json(null);
+  await User.findOneAndUpdate({username : req.user.username},{wishlisted_items : req.user.wishlisted_items.filter(product=>product.product_id!==req.params.product_id)})
+  res.status(200).json(null);
+});
+
+router.get('/removeFromCart/:product_id',async function(req,res){
+  await User.findOneAndUpdate({username : req.user.username},{cart_items : req.user.cart_items.filter(product=>product.product_id!==req.params.product_id)})
+  res.status(200).json(null);
+});
 
 router.get('/products/:name',async function(req,res){
   console.log(req.params.name);
@@ -73,8 +109,6 @@ router.get('/products/category/:name',async function(req,res){
   );
 });
 
-
-
 router.get('/user',function(req,res) {
   if(!req.user) return res.status(403).json(null);
   res.json(req.user);
@@ -82,9 +116,9 @@ router.get('/user',function(req,res) {
 
 router.get('/user/ordered_items',async function(req,res){
   if(!req.user) return res.status(403).json(null);
-  let ids = req.user.cart_items.map(object => object.product_id)
+  let ids = req.user.ordered_items.map(object => object.product_id)
   let data = (await Promise.all(ids.map(id=>Product.findOne({_id : id}))));
-  data = data.map((obj,i)=>obj===null ? obj : Object.assign({date : req.user.cart_items[i].date},obj._doc));
+  data = data.map((obj,i)=>obj===null ? obj : Object.assign({date : req.user.ordered_items[i].date},obj._doc));
   res.json(data);
 });
 router.get('/user/wishlisted_items',async function(req,res){
@@ -101,6 +135,7 @@ router.get('/user/cart_items',async function(req,res){
   data = data.map((obj,i)=>obj===null ? obj : Object.assign({quantity : req.user.cart_items[i].quantity},obj._doc));
   res.json(data);
 });
+
 router.get('/user/cart_items/length',function(req,res){
   if(!req.user) return res.status(403).json(null);
   res.json(req.user.cart_items.length);
