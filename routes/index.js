@@ -109,6 +109,14 @@ router.get('/products/category/:name',async function(req,res){
   );
 });
 
+router.get('/search/:query',async function(req,res){
+  let queryExp = new RegExp(req.params.query,'i');
+  let products = await Product.find({product_name : {
+    $regex : queryExp
+  }});
+  res.send(products);
+});
+
 router.get('/user',function(req,res) {
   if(!req.user) return res.status(403).json(null);
   res.json(req.user);
