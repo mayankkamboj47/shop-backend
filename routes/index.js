@@ -25,8 +25,13 @@ router.get('/products',async function(req,res){
   res.json(products);
 });
 
-// User Router
-
+/**
+ * Client id 
+ * 360145050522-18pmq80th1805g4ajnvs227e9clhshc3.apps.googleusercontent.com
+ * 
+ * Client secret
+ * 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
+ */
 
 //===============================================
 // Single Product
@@ -109,12 +114,27 @@ router.get('/products/category/:name',async function(req,res){
   );
 });
 
+router.get('/search/autosuggest/:query',async function(req,res){
+  let queryExp = new RegExp(req.params.query,'i');
+  let products = await Product.find({
+    product_name : {$regex : queryExp}
+  });
+  let fuzzyProducts = (await Product.find({
+    product_desc : {$regex : queryExp}
+  })).filter(product=>!products.some(p=>p.product_id===product.product_id));
+
+  res.send([...products,...fuzzyProducts].map(product=>product.product_name));
+});
+
 router.get('/search/:query',async function(req,res){
   let queryExp = new RegExp(req.params.query,'i');
   let products = await Product.find({product_name : {
     $regex : queryExp
   }});
-  res.send(products);
+  let fuzzyProducts = (await Product.find({
+    product_desc : {$regex : queryExp}
+  })).filter(product=>!products.some(p=>p.product_id===product.product_id));
+  res.send([...products , ...fuzzyProducts]);
 });
 
 router.get('/user',function(req,res) {
